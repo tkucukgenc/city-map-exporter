@@ -17,11 +17,13 @@ Export any city area as a **3D printable model** directly from your browser. Sel
 - 🗺️ **Interactive Map Selection** — Pan, zoom, and select any area in the world
 - 📐 **Flexible Shapes** — Rectangle, Circle, or Ellipse selection with rotation (0–180°)
 - 🏗️ **3D Model Generation** — Buildings with realistic heights based on OpenStreetMap data + road networks
+- 🌊 **Water Rendering** — Rivers, lakes, and bays rendered as a distinct layer with adjustable height
+- 🎨 **Custom Colors** — Change water, ground, road, and building colors via built-in color pickers
 - 📦 **Multiple Export Formats** — STL, OBJ, GLTF/GLB, PLY
 - 🌐 **10 Languages** — English (default), Turkish, Spanish, Russian, German, Italian, Chinese, Japanese, French, Arabic
 - 🌓 **Dark / Light Theme**
 - 🗺️ **7 Map Tile Providers** — OpenStreetMap, CartoDB Positron, CartoDB Dark, Stamen Toner, Stamen Watercolor, OSM Bright, OpenTopoMap
-- ⚙️ **Adjustable Print Parameters** — Water level, road height offset, building scale
+- ⚙️ **Adjustable Print Parameters** — Water level, ground offset, road offset, water height, building scale
 - 🔄 **3D Preview** — Orbit, zoom, and inspect the model before downloading
 - 🐳 **Docker Ready** — One-click setup
 
@@ -151,9 +153,12 @@ The 3D preview panel includes adjustable parameters to fine-tune the exported mo
 
 | Parameter | Default | Range | Description |
 |-----------|---------|-------|-------------|
-| **Water Level (Base)** | 2 mm | 0–10 mm | Controls the base plate thickness. Increase for a sturdier foundation. Useful when 3D printing to ensure the model has a solid base. |
-| **Road Height (Offset)** | 1 mm | 0–5 mm | Height offset for roads above the base plate. Higher values make roads more visible and distinct from the base. |
-| **Building Scale** | 1x | 0.5–5x | Multiplier for building heights. Increase for a more dramatic skyline effect, decrease for a flatter, more proportional model. |
+| **Water Level (Base)** | 2 mm | 1–20 mm | Controls the base plate thickness (STL foundation height). Increase for a sturdier base when 3D printing. |
+| **Ground Offset** | 1 mm | 0–5 mm | Elevates roads and buildings above the water level, creating a visible cliff between land and water areas. |
+| **Road Offset** | 1 mm | 0–5 mm | Controls road layer thickness. Set to 0 for paper-thin roads. |
+| **Water Height** | 0.5 mm | 0–5 mm | Controls the water layer thickness. Adjust to make rivers and bays more or less prominent. |
+| **Building Scale** | 1x | 0.5–10x | Multiplier for building heights. Increase for a more dramatic skyline effect. |
+| **Color Pickers** | — | — | Customize colors for water (default: blue), ground (brown), roads (grey), and buildings (white). |
 
 ### Use Cases
 
