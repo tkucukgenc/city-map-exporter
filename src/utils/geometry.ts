@@ -72,6 +72,7 @@ export function createBasePlate(bounds: number[], mask?: any) {
     return geometry;
 }
 
+
 export function processBuildings(buildings: FeatureCollection, boundsArray: number[], mask?: any) {
     const geometries: THREE.BufferGeometry[] = [];
     const bbox = boundsArray as [number, number, number, number];
@@ -216,6 +217,85 @@ export function processRoads(roads: FeatureCollection, boundsArray: number[], ma
             }
         } catch (e) {
             // Skip
+        }
+    });
+
+    return geometries;
+}
+
+export function processWater(water: FeatureCollection, boundsArray: number[], mask?: any) {
+    const geometries: THREE.BufferGeometry[] = [];
+    const bbox = boundsArray as [number, number, number, number];
+
+    water.features.forEach((feature) => {
+        if (!feature.geometry) return;
+
+        try {
+            let finalPoly: any = null;
+
+            // Handle LineString waterways (rivers/streams) — buffer them to ~15m width
+            if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
+                const buffered = turf.buffer(feature as any, 0.015, { units: 'kilometers' });
+                if (!buffered || (buffered.geometry.type !== 'Polygon' && buffered.geometry.type !== 'MultiPolygon')) return;
+                finalPoly = buffered;
+            } else if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+                finalPoly = feature;
+            } else {
+                return;
+            }
+
+            // Clip to mask or bbox
+            if (mask) {
+                const safeMask = prepareMask(mask);
+                const fc = turf.featureCollection([finalPoly as any, safeMask as any]) as any;
+                const intersected = turf.intersect(fc);
+                if (intersected) finalPoly = intersected;
+                else return;
+            } else {
+                const clipped = turf.bboxClip(finalPoly as any, bbox);
+                if (clipped && clipped.geometry && (clipped.geometry.type === 'Polygon' || clipped.geometry.type === 'MultiPolygon')) {
+                    finalPoly = clipped;
+                } else {
+                    return;
+                }
+            }
+
+            const polyGeom = finalPoly.geometry;
+            const polygons = polyGeom.type === 'Polygon' ? [polyGeom.coordinates] : polyGeom.coordinates;
+
+            polygons.forEach((coords: any[]) => {
+                if (!coords || coords.length === 0) return;
+                const outerRing = coords[0];
+                if (!outerRing || outerRing.length < 4) return;
+
+                const shape = new THREE.Shape();
+                outerRing.forEach((coord: number[], index: number) => {
+                    const vec = geoToVector3(coord[0], coord[1]);
+                    if (index === 0) shape.moveTo(vec.x, vec.z);
+                    else shape.lineTo(vec.x, vec.z);
+                });
+
+                // Add holes
+                for (let i = 1; i < coords.length; i++) {
+                    if (!coords[i] || coords[i].length < 4) continue;
+                    const holePath = new THREE.Path();
+                    coords[i].forEach((coord: number[], index: number) => {
+                        const vec = geoToVector3(coord[0], coord[1]);
+                        if (index === 0) holePath.moveTo(vec.x, vec.z);
+                        else holePath.lineTo(vec.x, vec.z);
+                    });
+                    shape.holes.push(holePath);
+                }
+
+                const geometry = new THREE.ExtrudeGeometry(shape, {
+                    depth: 1,
+                    bevelEnabled: false,
+                });
+                geometry.rotateX(-Math.PI / 2);
+                geometries.push(geometry);
+            });
+        } catch (e) {
+            // Skip problematic features
         }
     });
 
